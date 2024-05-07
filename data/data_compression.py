@@ -181,22 +181,23 @@ if __name__ == "__main__":
                 split_dst_dir.mkdir(parents=True, exist_ok=True)
 
                 def _process_one_npz(npz_path):
-                    out_p = split_dst_dir / npz_path.name
+                    try:
+                        out_p = split_dst_dir / npz_path.name
 
-                    if out_p.exists():
-                        return
+                        if out_p.exists():
+                            return
 
-                    data = dict(np.load(str(npz_path), allow_pickle=True))
-                    data = prune_graph(data)
-                    if split == "train":
-                        data = remove_dupplicated_node_configs(data)
-                    data["node_config_feat"] = compress_configs(
-                        data["node_config_feat"]
-                    )
-                    np.savez_compressed(out_p, **data)
+                        data = dict(np.load(str(npz_path), allow_pickle=True))
+                        data = prune_graph(data)
+                        if split == "train":
+                            data = remove_dupplicated_node_configs(data)
+                        data["node_config_feat"] = compress_configs(
+                            data["node_config_feat"]
+                        )
+                        np.savez_compressed(out_p, **data)
+                    except:
+                        pass
 
-                process_map(
-                    _process_one_npz,
-                    list(split_src_dir.glob("*.npz")),
-                    max_workers=max_workers,
-                )
+                for v in tqdm(list(split_src_dir.glob("*.npz"))):
+                    _process_one_npz(v)
+
