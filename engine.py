@@ -767,6 +767,7 @@ class LayoutComputeMetricsFn:
         score_dict = {}
         for search in searches:
             scores = []
+            opas = []
             for file_id, rows in self.df[self.df["search"] == search].groupby("file"):
                 idx = rows.index.tolist()
                 prediction = np.concatenate([predictions[i] for i in idx])
@@ -779,7 +780,14 @@ class LayoutComputeMetricsFn:
                 score = kendalltau(prediction, gt_ranks).statistic
                 scores.append(score)
 
+                from opa_metric import opa_metric
+                opa = opa_metric(prediction, gt_ranks)
+                opa = opa.item()
+                opas.append(opa)
+                print(f"OPA {opa}")
+
             score_dict["kendalltau_" + search] = np.mean(scores)
+            score_dict["opa_" + search] = np.mean(opas)
 
         score_dict["kendalltau"] = np.mean(list(score_dict.values()))
         return score_dict
